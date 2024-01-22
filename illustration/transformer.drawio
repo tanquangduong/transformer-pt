@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2024-01-21T21:59:13.765Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" etag="jW3K4PpBPiOZUKo8f2yR" version="22.1.21" type="device" pages="5">
+<mxfile host="app.diagrams.net" modified="2024-01-22T22:19:20.338Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" etag="IWjlA8nczrMcPYdx1HD3" version="22.1.21" type="device" pages="6">
   <diagram name="transformer-base" id="6MOdCAZpah0M3MAiv1za">
     <mxGraphModel dx="1434" dy="841" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -274,7 +274,7 @@
     </mxGraphModel>
   </diagram>
   <diagram id="HMmvMw_0RnTapSsGOQkV" name="transformer-large">
-    <mxGraphModel dx="1434" dy="841" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="683" dy="400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -977,6 +977,125 @@
         </mxCell>
         <mxCell id="55UFciIuIc-JiO7hgMiy-79" value="..." style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="515" y="545" width="30" height="30" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="K2W4zr0bKcHv4Z2Ha54m" name="Page-6">
+    <mxGraphModel dx="683" dy="400" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="WQxbhb-vESI-RGRriux1-1" value="Masked &lt;br&gt;Multi-Head Attention" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="549" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.903;entryY=1.024;entryDx=0;entryDy=0;curved=0;endSize=3;entryPerimeter=0;" edge="1" parent="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490" y="544" as="sourcePoint" />
+            <mxPoint x="522" y="474.00000000000006" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="490" y="494" />
+              <mxPoint x="522" y="494" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endSize=3;" edge="1" parent="1" source="WQxbhb-vESI-RGRriux1-1" target="WQxbhb-vESI-RGRriux1-9">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="504" />
+              <mxPoint x="550" y="504" />
+              <mxPoint x="550" y="424" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-4" value="Add &amp;amp; Norm" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="514" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.123;entryY=1.004;entryDx=0;entryDy=0;curved=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endSize=3;entryPerimeter=0;" edge="1" parent="1" target="WQxbhb-vESI-RGRriux1-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="370" y="414" />
+              <mxPoint x="430" y="414" />
+              <mxPoint x="430" y="494" />
+              <mxPoint x="460" y="494" />
+              <mxPoint x="460" y="474" />
+            </Array>
+            <mxPoint x="300" y="464" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;curved=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;endSize=3;" edge="1" parent="1" target="WQxbhb-vESI-RGRriux1-10">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="300" y="414" />
+              <mxPoint x="430" y="414" />
+              <mxPoint x="430" y="494" />
+              <mxPoint x="490" y="494" />
+            </Array>
+            <mxPoint x="300" y="464" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endSize=3;" edge="1" parent="1" source="WQxbhb-vESI-RGRriux1-10" target="WQxbhb-vESI-RGRriux1-12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=0;endSize=3;" edge="1" parent="1" source="WQxbhb-vESI-RGRriux1-9" target="WQxbhb-vESI-RGRriux1-13">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="404" />
+              <mxPoint x="550" y="404" />
+              <mxPoint x="550" y="344" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-9" value="Add &amp;amp; Norm" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="414" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-10" value="Multi-Head Attention" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="444" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;endSize=3;" edge="1" parent="1" source="WQxbhb-vESI-RGRriux1-12">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490" y="314" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-12" value="Feed&lt;br&gt;Forward" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="364" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-13" value="Add &amp;amp; Norm" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFCC;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry x="450" y="334" width="80" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;curved=0;endSize=3;" edge="1" parent="1" target="WQxbhb-vESI-RGRriux1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="490" y="657" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.132;entryY=1.014;entryDx=0;entryDy=0;curved=0;entryPerimeter=0;endSize=3;" edge="1" parent="1" target="WQxbhb-vESI-RGRriux1-1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="604" />
+              <mxPoint x="461" y="604" />
+            </Array>
+            <mxPoint x="490" y="657" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.884;entryY=1.004;entryDx=0;entryDy=0;curved=0;entryPerimeter=0;endSize=3;" edge="1" parent="1" target="WQxbhb-vESI-RGRriux1-1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="510" y="594" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="490" y="604" />
+              <mxPoint x="521" y="604" />
+            </Array>
+            <mxPoint x="490" y="657" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="WQxbhb-vESI-RGRriux1-17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;curved=0;endSize=3;" edge="1" parent="1" target="WQxbhb-vESI-RGRriux1-4">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="490" y="614" />
+              <mxPoint x="550" y="614" />
+              <mxPoint x="550" y="524" />
+            </Array>
+            <mxPoint x="490" y="657" as="sourcePoint" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
