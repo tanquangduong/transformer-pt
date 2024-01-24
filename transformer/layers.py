@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import math
+import torch.nn.functional as F
 
 class InputEmbedding(nn.Module):
     def __init__(self, vocab_size, d_model):
@@ -120,5 +121,25 @@ class MultiHeadAttention(nn.Module):
 
         return self.w_o(attention) # [batch_size, seq_len, d_model]
 
+class Projection(nn.Module):
 
+    def __init__(self, d_model: int, vocab_size: int) -> None:
+        super().__init__()
+        self.projection = nn.Linear(d_model, vocab_size)
+    
+    def forward(self, x): # x: [batch_size, seq_len, d_model]
+        return self.projection(x) # [batch_size, seq_len, vocab_size]
         
+class WordDecoder(nn.Module):
+    def __init__(self, tokenizer) -> None:
+        super().__init__()
+        self.tokenizer = tokenizer
+
+    def forward(self, x): # x: [batch_size, seq_len, vocab_size]
+        output = F.softmax(x, dim=-1) # Apply softmax to the last dimension
+        top_token = torch.argmax(output, dim=-1) # Get the token with the highest probability
+
+        # Iterate over the top_token tensor and decode each token in each sequence separately
+        decoded_words = [[self.tokenizer.decode(t.item()) for t in sequence] for sequence in top_token]
+
+        return decoded_words
