@@ -26,21 +26,20 @@ import warnings
 # HuggingFace imports
 from datasets import load_dataset
 from tokenizers import Tokenizer
-from tokenizers.models import BPE, WordPiece, WordLevel
-from tokenizers.trainers import BpeTrainer, WordLevelTrainer, WordPieceTrainer
+from tokenizers.models import WordLevel
+from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
 
 
-def create_tranformer_model(
-    vocab_size_src: int,
-    vocab_size_tgt: int,
-    d_model: int,
-    num_layers: int,
-    h: int,
-    d_ff: int,
-    dropout: float,
-    seq_len: int,
-) -> Transformer:
+def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transformer:
+
+    d_model = config["d_model"]
+    num_layers = config["num_layers"]
+    h = config["h"]
+    d_ff = config["d_ff"]
+    dropout = config["dropout"]
+    seq_len = config["seq_len"]
+
     # Initialize embedding layer
     embed_src = InputEmbedding(vocab_size_src, d_model)
     embed_tgt = InputEmbedding(vocab_size_tgt, d_model)
@@ -91,10 +90,12 @@ def create_tranformer_model(
 
     return transformer
 
+
 def load_config(config_file_path):
     with open(config_file_path, "r") as f:
         config = json.load(f)
     return config
+
 
 def get_dataset(config):
     dataset_name = config["dataset_name"]
@@ -104,6 +105,7 @@ def get_dataset(config):
     split = config["split"]
     raw_dataset = load_dataset(dataset_name, language_pair, split=split)
     return raw_dataset
+
 
 def get_tokenizer(config, dataset, language):
     tokenizer_name = config["tokenizer_name"]
@@ -161,7 +163,9 @@ def preprocessing_data(config):
     val_ds_size = int(len(raw_dataset) * 0.2)
     test_ds_size = len(raw_dataset) - train_ds_size - val_ds_size
 
-    train_raw_dataset, val_raw_dataset, test_raw_dataset = random_split(raw_dataset, [train_ds_size, val_ds_size, test_ds_size])
+    train_raw_dataset, val_raw_dataset, test_raw_dataset = random_split(
+        raw_dataset, [train_ds_size, val_ds_size, test_ds_size]
+    )
 
     train_ds = DataPreprocessor(
         train_raw_dataset,
@@ -190,12 +194,16 @@ def preprocessing_data(config):
         config["seq_len"],
     )
 
-    train_dataloader = DataLoader(train_ds, batch_size=config["batch_size"], shuffle=True)
+    train_dataloader = DataLoader(
+        train_ds, batch_size=config["batch_size"], shuffle=True
+    )
     val_dataloader = DataLoader(val_ds, batch_size=config["batch_size"], shuffle=True)
     test_dataloader = DataLoader(test_ds, batch_size=config["batch_size"], shuffle=True)
 
-    return train_dataloader, val_dataloader, test_dataloader, tokenizer_src, tokenizer_tgt
-
-
-
-    
+    return (
+        train_dataloader,
+        val_dataloader,
+        test_dataloader,
+        tokenizer_src,
+        tokenizer_tgt,
+    )

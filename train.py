@@ -14,7 +14,14 @@ def train(config):
     # Load and preprocess the dataset
     train_dataset, val_dataset, test_dataset, tokenizer_src, tokenizer_tgt = preprocessing_data(config)
 
+    # get vocab size for source and target language
+    vocab_size_src = tokenizer_src.get_vocab_size()
+    vocab_size_tgt = tokenizer_tgt.get_vocab_size()
+
     # Create the model
-    
+    model = create_tranformer_model(config, vocab_size_src, vocab_size_tgt).to(device)
+
+    # Initialize the optimizer
+    optimizer = torch.optim.Adam(model.parameters(), lr=config["learning_rate"], eps=1e-9)
 
 
