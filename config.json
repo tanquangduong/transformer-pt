@@ -16,4 +16,5 @@
     "model_name": "transformer_",
     "preload": "latest",
     "tokenizer_name": "tokenizer_"
+    "log_dir": "logs"
 }

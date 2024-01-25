@@ -54,7 +54,7 @@ class DataPreprocessor(Dataset):
                 self.eos_token_id,
                 self.pad_token_id.repeat(decoder_padding_num),
             ]
-        )
+        ) # (seq_len)
 
         # mask out the padding tokens in the encoder's input during attention calculation
         encoder_mask = (encoder_input != self.pad_token_id).unsqueeze(0).unsqueeze(0).int() # (1, 1, seq_len)
@@ -63,7 +63,7 @@ class DataPreprocessor(Dataset):
         padding_mask = (decoder_input != self.pad_token_id).unsqueeze(0).int() # (1, seq_len)
 
         # causal mask, also known as the look-ahead mask, used to mask out the future tokens in a sequence, making sure that the predictions for a given token only depend on the tokens that came before it.
-        causal_mask = torch.triu(torch.ones(self.seq_len, self.seq_len)).int() == 0 # (seq_len, seq_len)
+        causal_mask = torch.triu(torch.ones((1, self.seq_len, self.seq_len)), diagonal=1).type(torch.int) == 0 # (1, seq_len, seq_len)
 
 
         output = {
@@ -73,7 +73,7 @@ class DataPreprocessor(Dataset):
             "decoder_input": decoder_input,
             "decoder_target": decoder_target,
             "encoder_mask": encoder_mask,
-            "decoder_mask": padding_mask & causal_mask,
+            "decoder_mask": padding_mask & causal_mask, # (1, seq_len, seq_len)
         }
         return output
 

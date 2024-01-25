@@ -207,3 +207,18 @@ def preprocessing_data(config):
         tokenizer_src,
         tokenizer_tgt,
     )
+
+def get_checkpoint_path(config):
+    model_dir = config["model_dir"]
+    checkpoints = os.listdir(model_dir)
+    if len(checkpoints) == 0:
+        warnings.warn("No checkpoints found")
+        return None
+    if config['preload'] == "latest":
+        latest_checkpoint = max(checkpoints, key=os.path.getctime)
+        checkpoint_path = os.path.join(model_dir, latest_checkpoint)
+    elif config['preload']:
+        checkpoint_path = os.path.join(model_dir, config['preload'])
+    else:
+        checkpoint_path = None
+    return checkpoint_path
