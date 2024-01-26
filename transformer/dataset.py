@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset
-from transformer.utils import create_causal_mask
+from torch.utils.data import Dataset, DataLoader, random_split
+from transformer.utils import create_causal_mask, get_dataset, get_tokenizer
 
 class DataPreprocessor(Dataset):
     def __init__(self, dataset, tokenizer_src, tokenizer_tgt, language_src, language_tgt, seq_len):
@@ -13,9 +13,9 @@ class DataPreprocessor(Dataset):
         self.language_tgt = language_tgt
         self.seq_len = seq_len
 
-        self.sos_token_id = torch.tensor(self.tokenizer_src.token_to_id('[SOS]'), dtype=torch.int64)
-        self.eos_token_id = torch.tensor(self.tokenizer_src.token_to_id('[EOS]'), dtype=torch.int64)
-        self.pad_token_id = torch.tensor(self.tokenizer_src.token_to_id('[PAD]'), dtype=torch.int64)
+        self.sos_token_id = torch.tensor([self.tokenizer_src.token_to_id('[SOS]')], dtype=torch.int64)
+        self.eos_token_id = torch.tensor([self.tokenizer_src.token_to_id('[EOS]')], dtype=torch.int64)
+        self.pad_token_id = torch.tensor([self.tokenizer_src.token_to_id('[PAD]')], dtype=torch.int64)
 
     def __len__(self):
         return len(self.dataset)
@@ -78,4 +78,59 @@ class DataPreprocessor(Dataset):
         }
         return output
 
+def preprocessing_data(config):
+    raw_dataset = get_dataset(config)
 
+    # call tokenizer
+    tokenizer_src = get_tokenizer(config, raw_dataset, config["language_source"])
+    tokenizer_tgt = get_tokenizer(config, raw_dataset, config["language_target"])
+
+    # split raw dataset: 70% train, 20% validation, 10% test
+    train_ds_size = int(len(raw_dataset) * 0.7)
+    val_ds_size = int(len(raw_dataset) * 0.2)
+    test_ds_size = len(raw_dataset) - train_ds_size - val_ds_size
+
+    train_raw_dataset, val_raw_dataset, test_raw_dataset = random_split(
+        raw_dataset, [train_ds_size, val_ds_size, test_ds_size]
+    )
+
+    train_ds = DataPreprocessor(
+        train_raw_dataset,
+        tokenizer_src,
+        tokenizer_tgt,
+        config["language_source"],
+        config["language_target"],
+        config["seq_len"],
+    )
+
+    val_ds = DataPreprocessor(
+        val_raw_dataset,
+        tokenizer_src,
+        tokenizer_tgt,
+        config["language_source"],
+        config["language_target"],
+        config["seq_len"],
+    )
+
+    test_ds = DataPreprocessor(
+        test_raw_dataset,
+        tokenizer_src,
+        tokenizer_tgt,
+        config["language_source"],
+        config["language_target"],
+        config["seq_len"],
+    )
+
+    train_dataloader = DataLoader(
+        train_ds, batch_size=config["batch_size"], shuffle=True
+    )
+    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
+    test_dataloader = DataLoader(test_ds, batch_size=1, shuffle=True)
+
+    return (
+        train_dataloader,
+        val_dataloader,
+        test_dataloader,
+        tokenizer_src,
+        tokenizer_tgt,
+    )

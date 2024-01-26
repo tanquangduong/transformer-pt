@@ -5,12 +5,11 @@ from torch.utils.tensorboard import SummaryWriter
 
 from tqdm import tqdm
 from transformer.utils import (
-    load_config,
-    preprocessing_data,
     create_tranformer_model,
     get_checkpoint_path,
     create_checkpoint_path,
 )
+from transformer.dataset import preprocessing_data
 from transformer.evaluation_engine import evaluation_step
 
 

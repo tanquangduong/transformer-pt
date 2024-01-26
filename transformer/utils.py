@@ -1,7 +1,6 @@
 import json
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader, random_split
 import time
 from functools import wraps
 
@@ -16,7 +15,6 @@ from transformer.layers import (
 from transformer.encoder import Encoder, EncoderLayer
 from transformer.decoder import Decoder, DecoderLayer
 from transformer.model import Transformer
-from transformer.dataset import DataPreprocessor
 
 import os
 from pathlib import Path
@@ -150,62 +148,7 @@ def calculate_max_lengths(dataset, tokenizer_src, tokenizer_tgt, config):
     return max_src_len, max_tgt_len
 
 
-def preprocessing_data(config):
-    raw_dataset = get_dataset(config)
 
-    # call tokenizer
-    tokenizer_src = get_tokenizer(config, raw_dataset, config["language_source"])
-    tokenizer_tgt = get_tokenizer(config, raw_dataset, config["language_target"])
-
-    # split raw dataset: 70% train, 20% validation, 10% test
-    train_ds_size = int(len(raw_dataset) * 0.7)
-    val_ds_size = int(len(raw_dataset) * 0.2)
-    test_ds_size = len(raw_dataset) - train_ds_size - val_ds_size
-
-    train_raw_dataset, val_raw_dataset, test_raw_dataset = random_split(
-        raw_dataset, [train_ds_size, val_ds_size, test_ds_size]
-    )
-
-    train_ds = DataPreprocessor(
-        train_raw_dataset,
-        tokenizer_src,
-        tokenizer_tgt,
-        config["language_source"],
-        config["language_target"],
-        config["seq_len"],
-    )
-
-    val_ds = DataPreprocessor(
-        val_raw_dataset,
-        tokenizer_src,
-        tokenizer_tgt,
-        config["language_source"],
-        config["language_target"],
-        config["seq_len"],
-    )
-
-    test_ds = DataPreprocessor(
-        test_raw_dataset,
-        tokenizer_src,
-        tokenizer_tgt,
-        config["language_source"],
-        config["language_target"],
-        config["seq_len"],
-    )
-
-    train_dataloader = DataLoader(
-        train_ds, batch_size=config["batch_size"], shuffle=True
-    )
-    val_dataloader = DataLoader(val_ds, batch_size=config["batch_size"], shuffle=True)
-    test_dataloader = DataLoader(test_ds, batch_size=config["batch_size"], shuffle=True)
-
-    return (
-        train_dataloader,
-        val_dataloader,
-        test_dataloader,
-        tokenizer_src,
-        tokenizer_tgt,
-    )
 
 
 def get_checkpoint_path(config):

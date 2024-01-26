@@ -1,11 +1,7 @@
 import os
 import torch
-import torch.nn as nn
-from torch.utils.tensorboard import SummaryWriter
 import torchmetrics
-
-from tqdm import tqdm
-from transformer.utils import load_config, preprocessing_data, create_tranformer_model, get_checkpoint_path, create_causal_mask
+from transformer.utils import create_causal_mask
 
 def model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device):
     # It is important to know that the sequence length in decoder_input will be the sequence length of the decoder output. For training, sequence length of decoder input == seq_len == sequence length of encoder input/output. However, for inference, the sequence length of decoder input will be increased by 1 at each step until the model predicts the end of sequence token. Therefore, the sequence length of decoder input will be different from the sequence length of encoder input/output.
