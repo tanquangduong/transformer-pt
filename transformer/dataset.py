@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
+from transformer.utils import create_causal_mask
 
 class DataPreprocessor(Dataset):
     def __init__(self, dataset, tokenizer_src, tokenizer_tgt, language_src, language_tgt, seq_len):
@@ -63,7 +64,7 @@ class DataPreprocessor(Dataset):
         padding_mask = (decoder_input != self.pad_token_id).unsqueeze(0).int() # (1, seq_len)
 
         # causal mask, also known as the look-ahead mask, used to mask out the future tokens in a sequence, making sure that the predictions for a given token only depend on the tokens that came before it.
-        causal_mask = torch.triu(torch.ones((1, self.seq_len, self.seq_len)), diagonal=1).type(torch.int) == 0 # (1, seq_len, seq_len)
+        causal_mask = create_causal_mask(self.seq_len) # (1, seq_len, seq_len)
 
 
         output = {

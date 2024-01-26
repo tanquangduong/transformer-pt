@@ -38,7 +38,7 @@ class Transformer(nn.Module):
         # mask_tgt: [batch_size, 1, seq_len, seq_len]
         tgt = self.embed_tgt(tgt)
         tgt = self.pos_tgt(tgt)
-        return self.decoder(tgt, encoder_output, mask_src, mask_tgt)
+        return self.decoder(tgt, encoder_output, mask_src, mask_tgt) # [batch_size, seq_len, d_model]
     
     def project(self, x):
         # x: [batch_size, seq_len, d_model]

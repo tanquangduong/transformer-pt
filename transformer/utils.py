@@ -32,7 +32,6 @@ from tokenizers.pre_tokenizers import Whitespace
 
 
 def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transformer:
-
     d_model = config["d_model"]
     num_layers = config["num_layers"]
     h = config["h"]
@@ -208,17 +207,30 @@ def preprocessing_data(config):
         tokenizer_tgt,
     )
 
+
 def get_checkpoint_path(config):
     model_dir = config["model_dir"]
     checkpoints = os.listdir(model_dir)
     if len(checkpoints) == 0:
         warnings.warn("No checkpoints found")
         return None
-    if config['preload'] == "latest":
+    if config["preload"] == "latest":
         latest_checkpoint = max(checkpoints, key=os.path.getctime)
         checkpoint_path = os.path.join(model_dir, latest_checkpoint)
-    elif config['preload']:
-        checkpoint_path = os.path.join(model_dir, config['preload'])
+    elif config["preload"]:
+        checkpoint_path = os.path.join(model_dir, config["preload"])
     else:
         checkpoint_path = None
     return checkpoint_path
+
+
+def create_checkpoint_path(config, epoch):
+    model_dir = config["model_dir"]
+    checkpoint_basename = config["model_name"]
+    checkpoint_path = os.path.join(model_dir, f"{checkpoint_basename}_{epoch}.pt")
+    return str(checkpoint_path)
+
+def create_causal_mask(size):
+    return (
+        torch.triu(torch.ones((1, size, size)), diagonal=1).type(torch.int) == 0
+    )  # (1, size, size)

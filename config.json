@@ -15,6 +15,7 @@
     "model_dir": "models",
     "model_name": "transformer_",
     "preload": "latest",
-    "tokenizer_name": "tokenizer_"
-    "log_dir": "logs"
+    "tokenizer_name": "tokenizer_",
+    "log_dir": "logs",
+    "num_eval_samples": 3
 }
