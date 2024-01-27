@@ -154,11 +154,12 @@ def calculate_max_lengths(dataset, tokenizer_src, tokenizer_tgt, config):
 def get_checkpoint_path(config):
     model_dir = config["model_dir"]
     checkpoints = os.listdir(model_dir)
+    checkpoints.sort()
     if len(checkpoints) == 0:
         warnings.warn("No checkpoints found")
         return None
     if config["preload"] == "latest":
-        latest_checkpoint = max(checkpoints, key=os.path.getctime)
+        latest_checkpoint = checkpoints[-1]
         checkpoint_path = os.path.join(model_dir, latest_checkpoint)
     elif config["preload"]:
         checkpoint_path = os.path.join(model_dir, config["preload"])
@@ -170,7 +171,7 @@ def get_checkpoint_path(config):
 def create_checkpoint_path(config, epoch):
     model_dir = config["model_dir"]
     checkpoint_basename = config["model_name"]
-    checkpoint_path = os.path.join(model_dir, f"{checkpoint_basename}_{epoch}.pt")
+    checkpoint_path = os.path.join(model_dir, f"{checkpoint_basename}{epoch}.pt")
     return str(checkpoint_path)
 
 def create_causal_mask(size):

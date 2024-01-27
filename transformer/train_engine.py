@@ -52,10 +52,10 @@ def train(config):
     checkpoint_path = get_checkpoint_path(config)
 
     if checkpoint_path:
+        print(f"Loading checkpoint from {checkpoint_path}")
         checkpoint = torch.load(checkpoint_path)
         model.load_state_dict(checkpoint["model_state_dict"])
-        optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
-        initial_epoch = checkpoint["epoch"]
+        initial_epoch = checkpoint["epoch"] + 1 
         optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         global_step = checkpoint["global_step"]
     else:
