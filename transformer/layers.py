@@ -28,7 +28,7 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x): # x(embeded sequence): [batch_size, seq_len, d_model]
-        x = x + self.pe.requires_grad_(False)
+        x = x + (self.pe[:, :x.shape[1], :]).requires_grad_(False) # self.pe[:, :x.shape[1], :] is to adapt the shape of decoder input in case of traning or inference
         return self.dropout(x) # [batch_size, seq_len, d_model]
 
 class LayerNorm(nn.Module):

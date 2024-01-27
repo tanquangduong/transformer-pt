@@ -1,6 +1,6 @@
 import os
 import torch
-import torchmetrics
+import torchmetrics.text as metrics
 from transformer.utils import create_causal_mask
 
 def model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device):
@@ -12,7 +12,7 @@ def model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len,
     while True:
         if decoder_input.shape[1] == seq_len:
             break
-        decoder_mask = create_causal_mask(decoder_input.shape[1]).as_type(encoder_mask).to(device)
+        decoder_mask = create_causal_mask(decoder_input.shape[1]).type_as(encoder_mask).to(device)
         decoder_output = model.decode(decoder_input, encoder_output, encoder_mask, decoder_mask)
 
         # select the last token from the seq_len dimension
@@ -48,8 +48,8 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
 
             model_output = model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device)
 
-            source_text = batch["source_text"][0]
-            target_text = batch["target_text"][0]
+            source_text = batch["text_src"][0]
+            target_text = batch["text_tgt"][0]
             predicted_text = tokenizer_tgt.decode(model_output.detach().cpu().numpy())
 
             source_texts.append(source_text)
@@ -59,27 +59,28 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
             print(f"Source: {source_text}")
             print(f"Target: {target_text}")
             print(f"Predicted: {predicted_text}")
+            print("--------------------------------------------------")
 
             if len(source_texts) == num_eval_samples:
-                print("*************** EVALUATION COMPLETED ***************")
+                print("*************** EVALUATION COMPLETED - GO TO NEXT EPOCH ***************")
                 break
     
     if writer:
 
         # calculate the BLEU score
-        bleu_metric = torchmetrics.BLEUScore()
+        bleu_metric = metrics.BLEUScore()
         bleu_score = bleu_metric(predicted_texts, target_texts)
         writer.add_scalar("Validation BLEU Score", bleu_score, global_step)
         writer.flush()
 
         # calculate the word error rate
-        wer_metric  = torchmetrics.WordErrorRate()
+        wer_metric  = metrics.WordErrorRate()
         wer_score = wer_metric(predicted_texts, target_texts)
         writer.add_scalar("Validation Word Error Rate", wer_score, global_step)
         writer.flush()
 
         # calculate character error rate
-        cer_metric = torchmetrics.CharErrorRate()
+        cer_metric = metrics.CharErrorRate()
         cer_score = cer_metric(predicted_texts, target_texts)
         writer.add_scalar("Validation Character Error Rate", cer_score, global_step)
         writer.flush()
