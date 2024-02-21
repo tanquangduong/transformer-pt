@@ -148,9 +148,6 @@ def calculate_max_lengths(dataset, tokenizer_src, tokenizer_tgt, config):
     return max_src_len, max_tgt_len
 
 
-
-
-
 def get_checkpoint_path(config):
     model_dir = config["model_dir"]
     checkpoints = os.listdir(model_dir)

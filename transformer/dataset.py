@@ -67,7 +67,7 @@ class DataPreprocessor(Dataset):
         causal_mask = create_causal_mask(self.seq_len) # (1, seq_len, seq_len)
 
         # mask out the future tokens in the decoder's input
-        decoder_mask = padding_mask & causal_mask, # (1, seq_len, seq_len)
+        decoder_mask = padding_mask & causal_mask # (1, seq_len, seq_len)
 
         output = {
             "text_src": text_src,
