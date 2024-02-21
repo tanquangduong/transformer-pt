@@ -66,6 +66,8 @@ class DataPreprocessor(Dataset):
         # causal mask, also known as the look-ahead mask, used to mask out the future tokens in a sequence, making sure that the predictions for a given token only depend on the tokens that came before it.
         causal_mask = create_causal_mask(self.seq_len) # (1, seq_len, seq_len)
 
+        # mask out the future tokens in the decoder's input
+        decoder_mask = padding_mask & causal_mask, # (1, seq_len, seq_len)
 
         output = {
             "text_src": text_src,
@@ -74,7 +76,7 @@ class DataPreprocessor(Dataset):
             "decoder_input": decoder_input,
             "decoder_target": decoder_target,
             "encoder_mask": encoder_mask,
-            "decoder_mask": padding_mask & causal_mask, # (1, seq_len, seq_len)
+            "decoder_mask": decoder_mask
         }
         return output
 

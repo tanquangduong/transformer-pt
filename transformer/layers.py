@@ -130,16 +130,16 @@ class Projection(nn.Module):
     def forward(self, x): # x: [batch_size, seq_len, d_model]
         return self.projection(x) # [batch_size, seq_len, vocab_size]
         
-class WordDecoder(nn.Module):
-    def __init__(self, tokenizer) -> None:
-        super().__init__()
-        self.tokenizer = tokenizer
+# class WordDecoder(nn.Module):
+#     def __init__(self, tokenizer) -> None:
+#         super().__init__()
+#         self.tokenizer = tokenizer
 
-    def forward(self, x): # x: [batch_size, seq_len, vocab_size]
-        output = F.softmax(x, dim=-1) # Apply softmax to the last dimension
-        top_token = torch.argmax(output, dim=-1) # Get the token with the highest probability
+#     def forward(self, x): # x: [batch_size, seq_len, vocab_size]
+#         output = F.softmax(x, dim=-1) # Apply softmax to the last dimension
+#         top_token = torch.argmax(output, dim=-1) # Get the token with the highest probability
 
-        # Iterate over the top_token tensor and decode each token in each sequence separately
-        decoded_words = [[self.tokenizer.decode(t.item()) for t in sequence] for sequence in top_token]
+#         # Iterate over the top_token tensor and decode each token in each sequence separately
+#         decoded_words = [[self.tokenizer.decode(t.item()) for t in sequence] for sequence in top_token]
 
-        return decoded_words
+#         return decoded_words
