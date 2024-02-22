@@ -32,6 +32,40 @@ from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
 
 
+def load_config(config_file_path):
+    with open(config_file_path, "r") as f:
+        config = json.load(f)
+    return config
+
+
+def get_dataset(config):
+    dataset_name = config["dataset_name"]
+    lang_src = config["language_source"]
+    lang_tgt = config["language_target"]
+    language_pair = f"{lang_src}-{lang_tgt}"
+    split = config["split"]
+    raw_dataset = load_dataset(dataset_name, language_pair, split=split)
+    return raw_dataset
+
+
+def get_tokenizer(config, dataset, language):
+    tokenizer_name = config["tokenizer_name"]
+    tokenizer_path = f"{tokenizer_name}{language}.json"
+    if Path.exists(Path(tokenizer_path)):
+        tokenizer = Tokenizer.from_file(tokenizer_path)
+    else:
+        tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
+        tokenizer.pre_tokenizer = Whitespace()
+        trainer = WordLevelTrainer(
+            min_frequency=2,
+            special_tokens=["[PAD]", "[UNK]", "[SOS]", "[EOS]"],
+        )
+        tokenizer.train_from_iterator(
+            (item[language] for item in dataset["translation"]), trainer=trainer
+        )
+        tokenizer.save(tokenizer_path)
+    return tokenizer
+
 def preprocessing_data(config):
     raw_dataset = get_dataset(config)
 
@@ -147,42 +181,6 @@ def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transform
             nn.init.xavier_uniform_(param)
 
     return transformer
-
-
-def load_config(config_file_path):
-    with open(config_file_path, "r") as f:
-        config = json.load(f)
-    return config
-
-
-def get_dataset(config):
-    dataset_name = config["dataset_name"]
-    lang_src = config["language_source"]
-    lang_tgt = config["language_target"]
-    language_pair = f"{lang_src}-{lang_tgt}"
-    split = config["split"]
-    raw_dataset = load_dataset(dataset_name, language_pair, split=split)
-    return raw_dataset
-
-
-def get_tokenizer(config, dataset, language):
-    tokenizer_name = config["tokenizer_name"]
-    tokenizer_path = f"{tokenizer_name}{language}.json"
-    if Path.exists(Path(tokenizer_path)):
-        tokenizer = Tokenizer.from_file(tokenizer_path)
-    else:
-        tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
-        tokenizer.pre_tokenizer = Whitespace()
-        trainer = WordLevelTrainer(
-            min_frequency=2,
-            special_tokens=["[PAD]", "[UNK]", "[SOS]", "[EOS]"],
-        )
-        tokenizer.train_from_iterator(
-            (item[language] for item in dataset["translation"]), trainer=trainer
-        )
-        tokenizer.save(tokenizer_path)
-    return tokenizer
-
 
 def timer(func):
     @wraps(func)
