@@ -1,4 +1,4 @@
-from transformer.train_engine import train
+from transformer.engine import train
 from transformer.utils import load_config
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from transformer.layers import InputEmbedding, PositionalEncoding, Projection
+from transformer.layer import InputEmbedding, PositionalEncoding, Projection
 from transformer.encoder import Encoder
 from transformer.decoder import Decoder
 

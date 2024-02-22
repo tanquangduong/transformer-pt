@@ -1,11 +1,13 @@
 import json
-import torch
-import torch.nn as nn
 import time
 from functools import wraps
 
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader, random_split
+
 # Our 'transformer' package imports
-from transformer.layers import (
+from transformer.layer import (
     InputEmbedding,
     PositionalEncoding,
     Projection,
@@ -15,6 +17,7 @@ from transformer.layers import (
 from transformer.encoder import Encoder, EncoderLayer
 from transformer.decoder import Decoder, DecoderLayer
 from transformer.model import Transformer
+from transformer.data import DataPreprocessor
 
 import os
 from pathlib import Path
@@ -27,6 +30,64 @@ from tokenizers import Tokenizer
 from tokenizers.models import WordLevel
 from tokenizers.trainers import WordLevelTrainer
 from tokenizers.pre_tokenizers import Whitespace
+
+
+def preprocessing_data(config):
+    raw_dataset = get_dataset(config)
+
+    # call tokenizer
+    tokenizer_src = get_tokenizer(config, raw_dataset, config["language_source"])
+    tokenizer_tgt = get_tokenizer(config, raw_dataset, config["language_target"])
+
+    # split raw dataset: 70% train, 20% validation, 10% test
+    train_ds_size = int(len(raw_dataset) * 0.7)
+    val_ds_size = int(len(raw_dataset) * 0.2)
+    test_ds_size = len(raw_dataset) - train_ds_size - val_ds_size
+
+    train_raw_dataset, val_raw_dataset, test_raw_dataset = random_split(
+        raw_dataset, [train_ds_size, val_ds_size, test_ds_size]
+    )
+
+    train_ds = DataPreprocessor(
+        train_raw_dataset,
+        tokenizer_src,
+        tokenizer_tgt,
+        config["language_source"],
+        config["language_target"],
+        config["seq_len"],
+    )
+
+    val_ds = DataPreprocessor(
+        val_raw_dataset,
+        tokenizer_src,
+        tokenizer_tgt,
+        config["language_source"],
+        config["language_target"],
+        config["seq_len"],
+    )
+
+    test_ds = DataPreprocessor(
+        test_raw_dataset,
+        tokenizer_src,
+        tokenizer_tgt,
+        config["language_source"],
+        config["language_target"],
+        config["seq_len"],
+    )
+
+    train_dataloader = DataLoader(
+        train_ds, batch_size=config["batch_size"], shuffle=True
+    )
+    val_dataloader = DataLoader(val_ds, batch_size=1, shuffle=True)
+    test_dataloader = DataLoader(test_ds, batch_size=1, shuffle=True)
+
+    return (
+        train_dataloader,
+        val_dataloader,
+        test_dataloader,
+        tokenizer_src,
+        tokenizer_tgt,
+    )
 
 
 def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transformer:
@@ -171,7 +232,3 @@ def create_checkpoint_path(config, epoch):
     checkpoint_path = os.path.join(model_dir, f"{checkpoint_basename}{epoch}.pt")
     return str(checkpoint_path)
 
-def create_causal_mask(size):
-    return (
-        torch.triu(torch.ones((1, size, size)), diagonal=1).type(torch.int) == 0
-    )  # (1, size, size)

@@ -1,5 +1,5 @@
 import torch.nn as nn
-from transformer.layers import FeedForward, MultiHeadAttention, ResidualConnection, LayerNorm
+from transformer.layer import FeedForward, MultiHeadAttention, ResidualConnection, LayerNorm
 
 class DecoderLayer(nn.Module):
 
