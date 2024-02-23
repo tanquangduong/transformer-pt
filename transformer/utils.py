@@ -33,18 +33,50 @@ from tokenizers.pre_tokenizers import Whitespace
 
 
 def load_config(config_file_path):
+    """
+    Load a configuration file in JSON format.
+
+    Parameters:
+    config_file_path (str): The path to the configuration file.
+
+    Returns:
+    dict: A dictionary containing the configuration data.
+    """
+    # Open the file in read mode
     with open(config_file_path, "r") as f:
+        # Load the JSON content of the file into a Python dictionary
         config = json.load(f)
+    # Return the configuration data
     return config
 
 
 def get_dataset(config):
+    """
+    Retrieve a specific dataset from HuggingFace's datasets library.
+
+    Parameters:
+    config (dict): A dictionary containing the configuration data. It should include:
+        - "dataset_name": The name of the dataset to load.
+        - "language_source": The source language code.
+        - "language_target": The target language code.
+        - "split": The specific split of the dataset to load (e.g., 'train', 'test').
+
+    Returns:
+    Dataset: The loaded dataset.
+    """
+    # Extract the dataset name, source language, target language, and split from the config
     dataset_name = config["dataset_name"]
     lang_src = config["language_source"]
     lang_tgt = config["language_target"]
-    language_pair = f"{lang_src}-{lang_tgt}"
     split = config["split"]
+
+    # Construct the language pair string
+    language_pair = f"{lang_src}-{lang_tgt}"
+
+    # Load the dataset using the provided parameters
     raw_dataset = load_dataset(dataset_name, language_pair, split=split)
+
+    # Return the loaded dataset
     return raw_dataset
 
 
