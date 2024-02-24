@@ -26,11 +26,7 @@ import warnings
 
 # HuggingFace imports
 from datasets import load_dataset
-from tokenizers import Tokenizer
-from tokenizers.models import WordLevel
-from tokenizers.trainers import WordLevelTrainer
-from tokenizers.pre_tokenizers import Whitespace
-
+from tokenizers import Tokenizer, models, pre_tokenizers, trainers
 
 def load_config(config_file_path):
     """
@@ -80,22 +76,49 @@ def get_dataset(config):
     return raw_dataset
 
 
+# This function retrieves or trains a tokenizer based on the provided configuration, dataset, and language.
+# If a tokenizer file already exists at the specified path, it loads the tokenizer from that file.
+# Otherwise, it creates a new tokenizer, trains it on the provided dataset, and saves it to the specified path.
 def get_tokenizer(config, dataset, language):
+    """
+    Retrieve or train a tokenizer based on the provided configuration, dataset, and language.
+
+    Parameters:
+    config (dict): A dictionary containing the configuration data. It should include "tokenizer_name".
+    dataset (Dataset): The dataset to train the tokenizer on if necessary.
+    language (str): The language to use for the tokenizer.
+
+    Returns:
+    Tokenizer: The loaded or trained tokenizer.
+    """
+    # Extract the tokenizer name from the config and construct the tokenizer file path
     tokenizer_name = config["tokenizer_name"]
     tokenizer_path = f"{tokenizer_name}{language}.json"
+
+    # Check if a tokenizer file already exists at the specified path
     if Path.exists(Path(tokenizer_path)):
+        # If it does, load the tokenizer from that file
         tokenizer = Tokenizer.from_file(tokenizer_path)
     else:
-        tokenizer = Tokenizer(WordLevel(unk_token="[UNK]"))
-        tokenizer.pre_tokenizer = Whitespace()
-        trainer = WordLevelTrainer(
+        # If it doesn't, create a new tokenizer
+        tokenizer = Tokenizer(models.WordLevel(unk_token="[UNK]"))
+        tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
+
+        # Create a trainer for the tokenizer
+        trainer = trainers.WordLevelTrainer(
             min_frequency=2,
             special_tokens=["[PAD]", "[UNK]", "[SOS]", "[EOS]"],
         )
+
+        # Train the tokenizer on the provided dataset
         tokenizer.train_from_iterator(
             (item[language] for item in dataset["translation"]), trainer=trainer
         )
+
+        # Save the trained tokenizer to the specified path
         tokenizer.save(tokenizer_path)
+
+    # Return the tokenizer
     return tokenizer
 
 def preprocessing_data(config):

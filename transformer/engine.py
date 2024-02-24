@@ -74,8 +74,8 @@ def train(config):
         batch_iterator = tqdm(train_dataloader, desc=f"Training Epoch {epoch}")
 
         for batch in batch_iterator:
-            encoder_input = batch["encoder_input"].to(device)  # (batch_size, seq_len)
-            decoder_input = batch["decoder_input"].to(device)  # (batch_size, seq_len)
+            encoder_input = batch["encoder_input_ids"].to(device)  # (batch_size, seq_len)
+            decoder_input = batch["decoder_input_ids"].to(device)  # (batch_size, seq_len)
             encoder_mask = batch["encoder_mask"].to(
                 device
             )  # (batch_size, 1, 1, seq_len)
@@ -95,7 +95,7 @@ def train(config):
             )  # (batch_size, seq_len, vocab_size)
 
             # Load target/label sequences
-            decoder_target = batch["decoder_target"].to(device)  # (batch_size, seq_len)
+            decoder_target = batch["decoder_target_ids"].to(device)  # (batch_size, seq_len)
 
             # Calculate loss
             loss = loss_function(
@@ -179,7 +179,7 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
 
     with torch.no_grad():
         for batch in val_dataloader:
-            encoder_input = batch["encoder_input"].to(device) # (batch_size, seq_len)
+            encoder_input = batch["encoder_input_ids"].to(device) # (batch_size, seq_len)
             encoder_mask = batch["encoder_mask"].to(device) # (batch_size, 1, 1, seq_len)
 
             assert encoder_input.shape[0] == encoder_mask.shape[0] == 1, "Batch size must be 1 for evaluation"

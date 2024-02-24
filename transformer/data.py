@@ -33,7 +33,7 @@ class DataPreprocessor(Dataset):
         decoder_padding_num = self.seq_len - len(decoder_token_ids) - 1 # 1: [SOS], [EOS] for decoder's input, target respectively
 
         # Create fixed length sequences of token ids for encoder's and decoder's inputs
-        encoder_input = torch.cat(
+        encoder_input_ids = torch.cat(
             [
                 self.sos_token_id,
                 encoder_token_ids,
@@ -41,14 +41,14 @@ class DataPreprocessor(Dataset):
                 self.pad_token_id.repeat(encoder_padding_num),
             ]
         )
-        decoder_input = torch.cat(
+        decoder_input_ids = torch.cat(
             [
                 self.sos_token_id,
                 decoder_token_ids,
                 self.pad_token_id.repeat(decoder_padding_num),
             ]
         )
-        decoder_target = torch.cat(
+        decoder_target_ids = torch.cat(
             [
                 decoder_token_ids,
                 self.eos_token_id,
@@ -57,17 +57,17 @@ class DataPreprocessor(Dataset):
         ) # (seq_len)
 
         # mask out the padding tokens in the encoder's input during attention calculation
-        encoder_mask = create_encoder_mask(encoder_input, self.pad_token_id) # (1, 1, seq_len)
+        encoder_mask = create_encoder_mask(encoder_input_ids, self.pad_token_id) # (1, 1, seq_len)
 
         # mask out the future tokens in the decoder's input
-        decoder_mask = create_decoder_mask(decoder_input, self.pad_token_id, self.seq_len) # (1, seq_len, seq_len)
+        decoder_mask = create_decoder_mask(decoder_input_ids, self.pad_token_id, self.seq_len) # (1, seq_len, seq_len)
 
         output = {
             "text_src": text_src,
             "text_tgt": text_tgt,
-            "encoder_input": encoder_input,
-            "decoder_input": decoder_input,
-            "decoder_target": decoder_target,
+            "encoder_input_ids": encoder_input_ids,
+            "decoder_input_ids": decoder_input_ids,
+            "decoder_target_ids": decoder_target_ids,
             "encoder_mask": encoder_mask,
             "decoder_mask": decoder_mask
         }
