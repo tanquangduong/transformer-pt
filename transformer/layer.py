@@ -150,50 +150,119 @@ class MultiHeadAttention(nn.Module):
     
 
 class FeedForward(nn.Module):
+    """
+    A feed-forward network layer for use in a transformer model.
+
+    Parameters:
+    d_model (int): The dimensionality of the input and output.
+    d_ff (int): The dimensionality of the hidden layer.
+    dropout (float): The dropout rate.
+    """
+
+    # The constructor takes the input/output dimensionality, the hidden layer dimensionality, and the dropout rate as parameters.
     def __init__(self, d_model: int, d_ff: int, dropout: float) -> None:
-        super().__init__()
+        super().__init__()  # Call the constructor of the parent class.
+        
+        # Initialize the first linear transformation, which increases the dimensionality to d_ff.
         self.linear1 = nn.Linear(d_model, d_ff)
+        
+        # Initialize the second linear transformation, which decreases the dimensionality back to d_model.
         self.linear2 = nn.Linear(d_ff, d_model)
+        
+        # Initialize the dropout layer.
         self.dropout = nn.Dropout(dropout)
 
+    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len, d_model]
+        # It applies the first linear transformation, applies the ReLU activation function,
+        # applies dropout, and then applies the second linear transformation.
+        # The output shape is [batch_size, seq_len, d_model].
         return self.linear2(
             self.dropout(torch.relu(self.linear1(x)))
-        )  # [batch_size, seq_len, d_model]
+        )
 
 
 class LayerNorm(nn.Module):
+    """
+    A layer normalization layer for use in a transformer model.
+
+    Parameters:
+    d_model (int): The dimensionality of the input and output.
+    eps (float): A small number to prevent division by zero. Default is 1e-6.
+    """
+
+    # The constructor takes the input/output dimensionality and the epsilon value as parameters.
     def __init__(self, d_model: int, eps: float = 1e-6) -> None:
-        super().__init__()
+        super().__init__()  # Call the constructor of the parent class.
+        
+        # Initialize the scale and shift parameters, which are learnable.
         self.para_mul = nn.Parameter(torch.ones(d_model))
         self.para_bias = nn.Parameter(torch.zeros(d_model))
+        
+        # Store the epsilon value.
         self.eps = eps
 
+    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len, d_model]
+        # It calculates the mean and standard deviation of the input,
+        # and then normalizes the input by subtracting the mean and dividing by the standard deviation.
+        # It then scales and shifts the result using the learnable parameters.
+        # The output shape is [batch_size, seq_len, d_model].
         mean = x.mean(dim=-1, keepdim=True)
         std = x.std(dim=-1, keepdim=True)
         return (
             self.para_mul * (x - mean) / (std + self.eps) + self.para_bias
-        )  # [batch_size, seq_len, d_model]
+        )
 
 
 class ResidualConnection(nn.Module):
+    """
+    A residual connection layer for use in a transformer model.
+
+    Parameters:
+    d_model (int): The dimensionality of the input and output.
+    dropout (float): The dropout rate.
+    """
+
+    # The constructor takes the input/output dimensionality and the dropout rate as parameters.
     def __init__(self, d_model: int, dropout: float) -> None:
-        super().__init__()
+        super().__init__()  # Call the constructor of the parent class.
+        
+        # Initialize the layer normalization layer.
         self.norm = LayerNorm(d_model)
+        
+        # Initialize the dropout layer.
         self.dropout = nn.Dropout(dropout)
 
+    # The forward method is called when we pass input data into this layer.
     def forward(self, x, sublayer):  # x: [batch_size, seq_len, d_model]
+        # It applies layer normalization to the input, passes the result through the sublayer,
+        # applies dropout to the sublayer's output, and then adds the result to the original input.
+        # This is the "residual connection" that allows gradients to flow directly through the network.
+        # The output shape is [batch_size, seq_len, d_model].
         return x + self.dropout(
             sublayer(self.norm(x))
-        )  # [batch_size, seq_len, d_model]
+        )
 
 
 class Projection(nn.Module):
+    """
+    A projection layer for use in a transformer model.
 
+    Parameters:
+    d_model (int): The dimensionality of the input.
+    vocab_size (int): The size of the vocabulary, which is also the dimensionality of the output.
+    """
+
+    # The constructor takes the input dimensionality and the vocabulary size as parameters.
     def __init__(self, d_model: int, vocab_size: int) -> None:
-        super().__init__()
+        super().__init__()  # Call the constructor of the parent class.
+        
+        # Initialize the linear transformation that projects the input into the vocabulary space.
         self.projection = nn.Linear(d_model, vocab_size)
 
+    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len, d_model]
-        return self.projection(x)  # [batch_size, seq_len, vocab_size]
+        # It applies the linear transformation to the input.
+        # The output shape is [batch_size, seq_len, vocab_size].
+        return self.projection(x)
