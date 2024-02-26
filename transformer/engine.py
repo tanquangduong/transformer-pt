@@ -223,5 +223,3 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
         logs.add_scalar("Validation Character Error Rate", cer_score, global_step)
         logs.flush()
 
-            
-

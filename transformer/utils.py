@@ -122,21 +122,46 @@ def get_tokenizer(config, dataset, language):
     return tokenizer
 
 def preprocessing_data(config):
+    """
+    This function preprocesses the dataset for training, validation, and testing.
+    It tokenizes the raw dataset, splits it into training, validation, and test sets,
+    and then creates DataLoaders for each set.
+
+    Args:
+        config (dict): A configuration dictionary containing parameters for preprocessing.
+            It should include:
+            - "language_source": The source language for tokenization.
+            - "language_target": The target language for tokenization.
+            - "seq_len": The sequence length for the DataPreprocessor.
+            - "batch_size": The batch size for the DataLoader.
+
+    Returns:
+        tuple: A tuple containing:
+            - train_dataloader (DataLoader): DataLoader for the training set.
+            - val_dataloader (DataLoader): DataLoader for the validation set.
+            - test_dataloader (DataLoader): DataLoader for the test set.
+            - tokenizer_src (Tokenizer): Tokenizer for the source language.
+            - tokenizer_tgt (Tokenizer): Tokenizer for the target language.
+    """
+
+    # Get the raw dataset
     raw_dataset = get_dataset(config)
 
-    # call tokenizer
+    # Initialize tokenizers for the source and target languages
     tokenizer_src = get_tokenizer(config, raw_dataset, config["language_source"])
     tokenizer_tgt = get_tokenizer(config, raw_dataset, config["language_target"])
 
-    # split raw dataset: 70% train, 20% validation, 10% test
+    # Calculate the sizes of the training, validation, and test sets
     train_ds_size = int(len(raw_dataset) * 0.7)
     val_ds_size = int(len(raw_dataset) * 0.2)
     test_ds_size = len(raw_dataset) - train_ds_size - val_ds_size
 
+    # Split the raw dataset into training, validation, and test sets
     train_raw_dataset, val_raw_dataset, test_raw_dataset = random_split(
         raw_dataset, [train_ds_size, val_ds_size, test_ds_size]
     )
 
+    # Preprocess the training, validation, and test sets
     train_ds = DataPreprocessor(
         train_raw_dataset,
         tokenizer_src,
@@ -145,7 +170,6 @@ def preprocessing_data(config):
         config["language_target"],
         config["seq_len"],
     )
-
     val_ds = DataPreprocessor(
         val_raw_dataset,
         tokenizer_src,
@@ -154,7 +178,6 @@ def preprocessing_data(config):
         config["language_target"],
         config["seq_len"],
     )
-
     test_ds = DataPreprocessor(
         test_raw_dataset,
         tokenizer_src,
@@ -164,6 +187,7 @@ def preprocessing_data(config):
         config["seq_len"],
     )
 
+    # Create DataLoaders for the training, validation, and test sets
     train_dataloader = DataLoader(
         train_ds, batch_size=config["batch_size"], shuffle=True
     )
@@ -180,6 +204,26 @@ def preprocessing_data(config):
 
 
 def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transformer:
+    """
+    This function creates a Transformer model with the given configuration and vocabulary sizes.
+
+    Args:
+        config (dict): A configuration dictionary containing parameters for the Transformer model.
+            It should include:
+            - "d_model": The dimension of the model.
+            - "num_layers": The number of layers.
+            - "h": The number of heads for the multi-head attention mechanism.
+            - "d_ff": The dimension of the feed-forward network.
+            - "dropout": The dropout rate.
+            - "seq_len": The sequence length.
+        vocab_size_src (int): The size of the source vocabulary.
+        vocab_size_tgt (int): The size of the target vocabulary.
+
+    Returns:
+        Transformer: A Transformer model.
+    """
+
+    # Extract parameters from the configuration
     d_model = config["d_model"]
     num_layers = config["num_layers"]
     h = config["h"]
@@ -187,15 +231,15 @@ def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transform
     dropout = config["dropout"]
     seq_len = config["seq_len"]
 
-    # Initialize embedding layer
+    # Initialize the source and target embedding layers
     embed_src = InputEmbedding(vocab_size_src, d_model)
     embed_tgt = InputEmbedding(vocab_size_tgt, d_model)
 
-    # Initialize positional encoding layer
+    # Initialize the source and target positional encoding layers
     pos_src = PositionalEncoding(d_model, seq_len, dropout)
     pos_tgt = PositionalEncoding(d_model, seq_len, dropout)
 
-    # Initialize encoder
+    # Initialize the encoder with self-attention and feed-forward layers
     self_attention_encoder = MultiHeadAttention(d_model, h, dropout)
     feed_forward_encoder = FeedForward(d_model, d_ff, dropout)
     encoder_layer = EncoderLayer(
@@ -203,7 +247,7 @@ def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transform
     )
     encoder = Encoder(d_model, encoder_layer, num_layers)
 
-    # Initialize decoder
+    # Initialize the decoder with self-attention, encoder-decoder attention, and feed-forward layers
     self_attention_decoder = MultiHeadAttention(d_model, h, dropout)
     encoder_decoder_attention = MultiHeadAttention(d_model, h, dropout)
     feed_forward_decoder = FeedForward(d_model, d_ff, dropout)
@@ -216,10 +260,10 @@ def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transform
     )
     decoder = Decoder(d_model, decoder_layer, num_layers)
 
-    # Initialize projection layer
+    # Initialize the projection layer
     projection = Projection(d_model, vocab_size_tgt)
 
-    # Initialize transformer model
+    # Initialize the Transformer model
     transformer = Transformer(
         encoder,
         decoder,
@@ -230,7 +274,7 @@ def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transform
         projection,
     )
 
-    # Initialize model parameters
+    # Initialize the model parameters with Xavier uniform distribution
     for param in transformer.parameters():
         if param.dim() > 1:
             nn.init.xavier_uniform_(param)
@@ -238,50 +282,135 @@ def create_tranformer_model(config, vocab_size_src, vocab_size_tgt) -> Transform
     return transformer
 
 def timer(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        start_time = time.time()
-        result = func(*args, **kwargs)
-        end_time = time.time()
-        print(f"Execution time: {end_time - start_time} seconds")
-        return result
+    """
+    This is a decorator function that calculates and prints the execution time of the decorated function.
 
-    return wrapper
+    Args:
+        func (callable): The function to be decorated.
+
+    Returns:
+        callable: The decorated function.
+    """
+    
+    @wraps(func)  # This preserves the name, docstring, etc. of the original function
+    def wrapper(*args, **kwargs):
+        start_time = time.time()  # Record the start time before executing the function
+
+        result = func(*args, **kwargs)  # Execute the function and store the result
+
+        end_time = time.time()  # Record the end time after executing the function
+
+        # Calculate and print the execution time
+        print(f"Execution time: {end_time - start_time} seconds")
+
+        return result  # Return the result of the function
+
+    return wrapper  # Return the decorated function
 
 
 @timer
 def calculate_max_lengths(dataset, tokenizer_src, tokenizer_tgt, config):
+    """
+    This function calculates the maximum lengths of the source and target sequences in the dataset.
+    The function is decorated with the @timer decorator, which measures the execution time.
+
+    Args:
+        dataset (Dataset): The dataset to calculate the maximum lengths from.
+        tokenizer_src (Tokenizer): The tokenizer for the source language.
+        tokenizer_tgt (Tokenizer): The tokenizer for the target language.
+        config (dict): A configuration dictionary containing parameters for the function.
+            It should include:
+            - "language_source": The source language.
+            - "language_target": The target language.
+
+    Returns:
+        tuple: A tuple containing:
+            - max_src_len (int): The maximum length of the source sequences.
+            - max_tgt_len (int): The maximum length of the target sequences.
+    """
+
+    # Calculate the maximum length of the source sequences
     max_src_len = max(
         len(tokenizer_src.encode(item["translation"][config["language_source"]]).ids)
         for item in dataset
     )
+
+    # Calculate the maximum length of the target sequences
     max_tgt_len = max(
         len(tokenizer_tgt.encode(item["translation"][config["language_target"]]).ids)
         for item in dataset
     )
+
     return max_src_len, max_tgt_len
 
 
 def get_checkpoint_path(config):
+    """
+    This function retrieves the path of the checkpoint file based on the provided configuration.
+
+    Args:
+        config (dict): A configuration dictionary containing parameters for the function.
+            It should include:
+            - "model_dir": The directory where the model checkpoints are stored.
+            - "preload": The checkpoint to load. If "latest", the latest checkpoint is loaded.
+                If a filename is provided, that checkpoint is loaded.
+                If False or None, no checkpoint is loaded.
+
+    Returns:
+        str or None: The path of the checkpoint file, or None if no checkpoint is to be loaded.
+    """
+
+    # Get the directory where the model checkpoints are stored
     model_dir = config["model_dir"]
+
+    # List all files in the model directory and sort them
     checkpoints = os.listdir(model_dir)
     checkpoints.sort()
+
+    # If there are no checkpoints, issue a warning and return None
     if len(checkpoints) == 0:
         warnings.warn("No checkpoints found")
         return None
+
+    # If the configuration specifies to preload the latest checkpoint, get its path
     if config["preload"] == "latest":
         latest_checkpoint = checkpoints[-1]
         checkpoint_path = os.path.join(model_dir, latest_checkpoint)
+
+    # If the configuration specifies to preload a specific checkpoint, get its path
     elif config["preload"]:
         checkpoint_path = os.path.join(model_dir, config["preload"])
+
+    # If the configuration does not specify to preload any checkpoint, return None
     else:
         checkpoint_path = None
+
     return checkpoint_path
 
 
 def create_checkpoint_path(config, epoch):
+    """
+    This function creates the path for a checkpoint file based on the provided configuration and epoch number.
+
+    Args:
+        config (dict): A configuration dictionary containing parameters for the function.
+            It should include:
+            - "model_dir": The directory where the model checkpoints are stored.
+            - "model_name": The base name of the checkpoint files.
+        epoch (int): The epoch number.
+
+    Returns:
+        str: The path of the checkpoint file.
+    """
+
+    # Get the directory where the model checkpoints are stored
     model_dir = config["model_dir"]
+
+    # Get the base name of the checkpoint files
     checkpoint_basename = config["model_name"]
+
+    # Create the path of the checkpoint file
     checkpoint_path = os.path.join(model_dir, f"{checkpoint_basename}{epoch}.pt")
+
     return str(checkpoint_path)
 

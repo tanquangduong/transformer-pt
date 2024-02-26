@@ -13,18 +13,15 @@ class InputEmbedding(nn.Module):
     d_model (int): The dimensionality of the embeddings.
     """
 
-    # The constructor takes the vocabulary size and the embedding dimensionality as parameters.
     def __init__(self, vocab_size, d_model):
-        super().__init__()  # Call the constructor of the parent class.
-        self.embedding = nn.Embedding(vocab_size, d_model)  # Create an embedding layer.
-        self.d_model = d_model  # Store the embedding dimensionality.
+        super().__init__()  
+        self.embedding = nn.Embedding(vocab_size, d_model)  
+        self.d_model = d_model  
 
-    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len]
-        # It applies the embedding layer to the input,
+        # Apply the embedding layer to the input,
         # and then scales the result by the square root of the embedding dimensionality.
-        # The output shape is [batch_size, seq_len, d_model].
-        return self.embedding(x) * math.sqrt(self.d_model)
+        return self.embedding(x) * math.sqrt(self.d_model) # [batch_size, seq_len, d_model].
 
 class PositionalEncoding(nn.Module):
     """
@@ -36,16 +33,16 @@ class PositionalEncoding(nn.Module):
     dropout (float): The dropout rate.
     """
 
-    # The constructor takes the embedding dimensionality, the maximum sequence length, and the dropout rate as parameters.
     def __init__(self, d_model: int, seq_len: int, dropout: float) -> None:
-        super().__init__()  # Call the constructor of the parent class.
-        self.dropout = nn.Dropout(dropout)  # Create a dropout layer.
+        super().__init__()  
+        self.dropout = nn.Dropout(dropout)  
 
         # Compute the positional encodings once in log space.
         position = torch.arange(0, seq_len, dtype=torch.float).unsqueeze(1)
         base = 10000.0 ** (-1.0 / d_model)
         div_term = torch.pow(base, torch.arange(0, d_model, 2).float())
 
+        # Compute the positional encodings 
         pe = torch.zeros(seq_len, d_model)
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
@@ -54,14 +51,13 @@ class PositionalEncoding(nn.Module):
         # Register the positional encodings as a buffer.
         self.register_buffer("pe", pe)
 
-    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x(embeded sequence): [batch_size, seq_len, d_model]
-        # It adds the positional encodings to the input embeddings,
-        # and applies dropout to the result.
-        # The output shape is [batch_size, seq_len, d_model].
+        # Add the positional encodings to the input embeddings,
+        # Then apply dropout to the result.
         x = x + (self.pe[:, : x.shape[1], :]).requires_grad_(False)
+
         # self.pe[:, :x.shape[1], :] is to adapt the shape of decoder input in case of traning or inference
-        return self.dropout(x)
+        return self.dropout(x) # [batch_size, seq_len, d_model].
 
 class MultiHeadAttention(nn.Module):
     """
@@ -73,7 +69,6 @@ class MultiHeadAttention(nn.Module):
     dropout (float): The dropout rate.
     """
 
-    # The constructor takes the embedding dimensionality, the number of attention heads, and the dropout rate as parameters.
     def __init__(self, d_model: int, h: int, dropout: float) -> None:
         super().__init__()  # Call the constructor of the parent class.
         self.d_model = d_model
@@ -95,9 +90,7 @@ class MultiHeadAttention(nn.Module):
     # The attention function calculates the attention scores for a given query, key, and value.
     @staticmethod
     def attention(query_k, key_k, value_k, d_k, mask=None, dropout=nn.Dropout):
-        # query_k: [batch_size, h, seq_len, d_k]
-        # key_k: [batch_size, h, seq_len, d_k]
-        # value_k: [batch_size, h, seq_len, d_k]
+        # query_k | key_k | value_k: [batch_size, h, seq_len, d_k]
         # mask: [batch_size, 1, seq_len, seq_len]
 
         # Calculate the attention scores.
@@ -107,10 +100,8 @@ class MultiHeadAttention(nn.Module):
         if mask is not None:
             attention_score = attention_score.masked_fill(mask == 0, -1e9)
 
-        # Apply the softmax function to the attention scores.
+        # Apply the softmax and dropout function to the attention scores.
         attention_score = torch.softmax(attention_score, dim=-1)
-
-        # Apply dropout to the attention scores.
         attention_score = dropout(attention_score)
 
         # Return the weighted sum of the values, along with the attention scores.
@@ -119,9 +110,7 @@ class MultiHeadAttention(nn.Module):
 
     # The forward method is called when we pass input data into this layer.
     def forward(self, query, key, value, mask=None):
-        # query: [batch_size, seq_len, d_model]
-        # key: [batch_size, seq_len, d_model]
-        # value: [batch_size, seq_len, d_model]
+        # query | key | value: [batch_size, seq_len, d_model]
         # mask: [batch_size, 1, seq_len, seq_len]
 
         # Apply the linear transformations to the query, key, and value.
@@ -159,9 +148,8 @@ class FeedForward(nn.Module):
     dropout (float): The dropout rate.
     """
 
-    # The constructor takes the input/output dimensionality, the hidden layer dimensionality, and the dropout rate as parameters.
     def __init__(self, d_model: int, d_ff: int, dropout: float) -> None:
-        super().__init__()  # Call the constructor of the parent class.
+        super().__init__()  
         
         # Initialize the first linear transformation, which increases the dimensionality to d_ff.
         self.linear1 = nn.Linear(d_model, d_ff)
@@ -172,13 +160,11 @@ class FeedForward(nn.Module):
         # Initialize the dropout layer.
         self.dropout = nn.Dropout(dropout)
 
-    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len, d_model]
         # It applies the first linear transformation, applies the ReLU activation function,
         # applies dropout, and then applies the second linear transformation.
-        # The output shape is [batch_size, seq_len, d_model].
         return self.linear2(
-            self.dropout(torch.relu(self.linear1(x)))
+            self.dropout(torch.relu(self.linear1(x))) # [batch_size, seq_len, d_model].
         )
 
 
@@ -191,9 +177,8 @@ class LayerNorm(nn.Module):
     eps (float): A small number to prevent division by zero. Default is 1e-6.
     """
 
-    # The constructor takes the input/output dimensionality and the epsilon value as parameters.
     def __init__(self, d_model: int, eps: float = 1e-6) -> None:
-        super().__init__()  # Call the constructor of the parent class.
+        super().__init__()  
         
         # Initialize the scale and shift parameters, which are learnable.
         self.para_mul = nn.Parameter(torch.ones(d_model))
@@ -202,16 +187,14 @@ class LayerNorm(nn.Module):
         # Store the epsilon value.
         self.eps = eps
 
-    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len, d_model]
         # It calculates the mean and standard deviation of the input,
         # and then normalizes the input by subtracting the mean and dividing by the standard deviation.
         # It then scales and shifts the result using the learnable parameters.
-        # The output shape is [batch_size, seq_len, d_model].
         mean = x.mean(dim=-1, keepdim=True)
         std = x.std(dim=-1, keepdim=True)
         return (
-            self.para_mul * (x - mean) / (std + self.eps) + self.para_bias
+            self.para_mul * (x - mean) / (std + self.eps) + self.para_bias # [batch_size, seq_len, d_model].
         )
 
 
@@ -224,9 +207,8 @@ class ResidualConnection(nn.Module):
     dropout (float): The dropout rate.
     """
 
-    # The constructor takes the input/output dimensionality and the dropout rate as parameters.
     def __init__(self, d_model: int, dropout: float) -> None:
-        super().__init__()  # Call the constructor of the parent class.
+        super().__init__()
         
         # Initialize the layer normalization layer.
         self.norm = LayerNorm(d_model)
@@ -234,14 +216,11 @@ class ResidualConnection(nn.Module):
         # Initialize the dropout layer.
         self.dropout = nn.Dropout(dropout)
 
-    # The forward method is called when we pass input data into this layer.
     def forward(self, x, sublayer):  # x: [batch_size, seq_len, d_model]
+
         # It applies layer normalization to the input, passes the result through the sublayer,
-        # applies dropout to the sublayer's output, and then adds the result to the original input.
-        # This is the "residual connection" that allows gradients to flow directly through the network.
-        # The output shape is [batch_size, seq_len, d_model].
         return x + self.dropout(
-            sublayer(self.norm(x))
+            sublayer(self.norm(x)) # [batch_size, seq_len, d_model].
         )
 
 
@@ -254,15 +233,13 @@ class Projection(nn.Module):
     vocab_size (int): The size of the vocabulary, which is also the dimensionality of the output.
     """
 
-    # The constructor takes the input dimensionality and the vocabulary size as parameters.
     def __init__(self, d_model: int, vocab_size: int) -> None:
-        super().__init__()  # Call the constructor of the parent class.
+        super().__init__()  
         
         # Initialize the linear transformation that projects the input into the vocabulary space.
         self.projection = nn.Linear(d_model, vocab_size)
 
-    # The forward method is called when we pass input data into this layer.
     def forward(self, x):  # x: [batch_size, seq_len, d_model]
+
         # It applies the linear transformation to the input.
-        # The output shape is [batch_size, seq_len, vocab_size].
-        return self.projection(x)
+        return self.projection(x) # [batch_size, seq_len, vocab_size].
