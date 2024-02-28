@@ -277,17 +277,39 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
         logs.flush()
 
 def transformer_translates(src_text, model, tokenizer_src, tokenizer_tgt, seq_len, device):
+    """
+    Translates a source text using a transformer model.
 
+    Parameters:
+    src_text (str): The source text to translate.
+    model (nn.Module): The transformer model to use for translation.
+    tokenizer_src (Tokenizer): The tokenizer for the source language.
+    tokenizer_tgt (Tokenizer): The tokenizer for the target language.
+    seq_len (int): The maximum sequence length.
+    device (torch.device): The device to run the model on.
+
+    Returns:
+    str: The translated text.
+    """
+
+    # Set the model to evaluation mode.
     model.eval()
 
+    # Disable gradient calculation.
     with torch.no_grad():
 
+        # Tokenize the source text.
         tokenized_src_text = tokenizer_src.encode(src_text)
+
+        # Calculate the number of padding tokens needed for the encoder input.
         encoder_padding_num = seq_len - len(tokenized_src_text.ids) - 2 # 2 for [SOS] and [EOS]
+
+        # Get the IDs of the special tokens.
         sos_id = tokenizer_src.token_to_id("[SOS]")
         eos_id = tokenizer_src.token_to_id("[EOS]")
         pad_id = tokenizer_src.token_to_id("[PAD]")
 
+        # Create the encoder input by concatenating the special tokens and the tokenized source text.
         encoder_input = torch.cat(
             [
                 torch.tensor([sos_id],  dtype=torch.int64),
@@ -297,38 +319,45 @@ def transformer_translates(src_text, model, tokenizer_src, tokenizer_tgt, seq_le
             ], dim=0
         ).to(device)
 
+        # Create the encoder mask.
         encoder_mask = create_encoder_mask(encoder_input, pad_id).to(device)
+
+        # Encode the input.
         encoder_output = model.encode(encoder_input, encoder_mask)
 
+        # Initialize the decoder input with the start of sequence token.
         decoder_input = torch.tensor([[sos_id]]).type_as(encoder_input).to(device)
 
+        # Loop until the sequence length is reached or the end of sequence token is predicted.
         while True:
 
+            # Break the loop if the sequence length is reached.
             if decoder_input.shape[1] == seq_len:
                 break
 
+            # Create the decoder mask.
             decoder_mask = create_causal_mask(decoder_input.shape[1]).type_as(encoder_mask).to(device)
+
+            # Decode the encoder output.
             decoder_output = model.decode(decoder_input, encoder_output, encoder_mask, decoder_mask)
 
-            # select the last token from the seq_len dimension
+            # Select the last token from the sequence length dimension.
             last_token_output = decoder_output[:, -1, :]
 
-            # project the output to the target vocab size
+            # Project the output to the target vocabulary size.
             projection_output = model.project(last_token_output)
 
-            _, predicted_token = torch.max(projection_output, dim=1) # predicted_token is the indice of the max value in projection_output, meaning the id in vocabulary
+            # Get the predicted token by finding the index of the maximum value in the projection output.
+            _, predicted_token = torch.max(projection_output, dim=1)
 
-            # update the decoder input
+            # Update the decoder input by appending the predicted token.
             decoder_input = torch.cat([decoder_input, predicted_token.unsqueeze(0).type_as(encoder_input).to(device)], dim=1) 
 
-            # Break the loop if the predicted token is the end of sequence token
+            # Break the loop if the predicted token is the end of sequence token.
             if predicted_token == eos_id:
                 break
     
+    # Decode the decoder input to get the translated text.
     translated_text = tokenizer_tgt.decode(decoder_input.squeeze(0).detach().cpu().numpy())
-    return translated_text
     
-
-
-
-
+    return translated_text
