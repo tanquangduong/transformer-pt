@@ -1,0 +1,21 @@
+{
+    "dataset_name": "news_commentary",
+    "language_source": "en",
+    "language_target": "fr",
+    "split": "train",
+    "seq_len": 360,
+    "d_model": 512,
+    "h": 8,
+    "num_layers": 6,
+    "d_ff": 2048,
+    "dropout": 0.1,
+    "learning_rate": 1e-4,
+    "epochs": 20,
+    "batch_size": 8,
+    "model_dir": "models",
+    "model_name": "transformer_",
+    "preload": "latest",
+    "tokenizer_name": "tokenizer_",
+    "log_dir": "logs",
+    "num_eval_samples": 3
+}

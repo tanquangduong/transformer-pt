@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 import torchmetrics.text as metrics
-from transformer.mask import create_causal_mask
+from transformer.mask import create_causal_mask, create_encoder_mask
 
 from tqdm import tqdm
 from transformer.utils import (
@@ -275,4 +275,60 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
         cer_score = cer_metric(predicted_texts, target_texts)
         logs.add_scalar("Validation Character Error Rate", cer_score, global_step)
         logs.flush()
+
+def transformer_translates(src_text, model, tokenizer_src, tokenizer_tgt, seq_len, device):
+
+    model.eval()
+
+    with torch.no_grad():
+
+        tokenized_src_text = tokenizer_src.encode(src_text)
+        encoder_padding_num = seq_len - len(tokenized_src_text.ids) - 2 # 2 for [SOS] and [EOS]
+        sos_id = tokenizer_src.token_to_id("[SOS]")
+        eos_id = tokenizer_src.token_to_id("[EOS]")
+        pad_id = tokenizer_src.token_to_id("[PAD]")
+
+        encoder_input = torch.cat(
+            [
+                torch.tensor([sos_id],  dtype=torch.int64),
+                torch.tensor(tokenized_src_text.ids, dtype=torch.int64),
+                torch.tensor([eos_id],  dtype=torch.int64),
+                torch.tensor([pad_id] * encoder_padding_num,  dtype=torch.int64),
+            ], dim=0
+        ).to(device)
+
+        encoder_mask = create_encoder_mask(encoder_input, pad_id).to(device)
+        encoder_output = model.encode(encoder_input, encoder_mask)
+
+        decoder_input = torch.tensor([[sos_id]]).type_as(encoder_input).to(device)
+
+        while True:
+
+            if decoder_input.shape[1] == seq_len:
+                break
+
+            decoder_mask = create_causal_mask(decoder_input.shape[1]).type_as(encoder_mask).to(device)
+            decoder_output = model.decode(decoder_input, encoder_output, encoder_mask, decoder_mask)
+
+            # select the last token from the seq_len dimension
+            last_token_output = decoder_output[:, -1, :]
+
+            # project the output to the target vocab size
+            projection_output = model.project(last_token_output)
+
+            _, predicted_token = torch.max(projection_output, dim=1) # predicted_token is the indice of the max value in projection_output, meaning the id in vocabulary
+
+            # update the decoder input
+            decoder_input = torch.cat([decoder_input, predicted_token.unsqueeze(0).type_as(encoder_input).to(device)], dim=1) 
+
+            # Break the loop if the predicted token is the end of sequence token
+            if predicted_token == eos_id:
+                break
+    
+    translated_text = tokenizer_tgt.decode(decoder_input.squeeze(0).detach().cpu().numpy())
+    return translated_text
+    
+
+
+
 
