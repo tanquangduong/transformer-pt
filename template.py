@@ -10,9 +10,11 @@ print(f"Using {device} device")
 
 ## Get Config, dataset, tokenizers
 config_file_path = "./config.json"
-config = load_config(config_file_path)
-dataset = get_dataset(config)
-tokenizer_src = get_tokenizer(config, dataset, config['language_source'])
+
+config = load_config(...)
+dataset = get_dataset(...)
+tokenizer_src = get_tokenizer(...)
+
 tokenizer_tgt = get_tokenizer(config, dataset, config['language_target'])
 
 vocab_size_src = tokenizer_src.get_vocab_size()
