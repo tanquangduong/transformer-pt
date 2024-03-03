@@ -115,7 +115,7 @@ def train(config):
             global_step += 1
 
         # Run validation at the end of each epoch
-        evaluation_step(
+        evaluation(
             model,
             val_dataloader,
             tokenizer_src,
@@ -139,7 +139,7 @@ def train(config):
             model_checkpoint_path,
         )
 
-def model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device):
+def infer_training(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device):
     """
     Performs inference using the provided model.
 
@@ -193,7 +193,7 @@ def model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len,
     return decoder_input.squeeze(0)
 
 
-def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len, global_step, logs, num_eval_samples, device):
+def evaluation(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len, global_step, logs, num_eval_samples, device):
     """
     Performs an evaluation step on the validation data.
 
@@ -233,7 +233,7 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
             assert encoder_input.shape[0] == encoder_mask.shape[0] == 1, "Batch size must be 1 for evaluation"
 
             # Perform inference using the model
-            model_output = model_inference(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device)
+            model_output = infer_training(model, encoder_input, encoder_mask, sos_id, eos_id, seq_len, device)
 
             # Get the source text, target text, and predicted text from the batch
             source_text = batch["text_src"][0]
@@ -276,7 +276,7 @@ def evaluation_step(model, val_dataloader, tokenizer_src, tokenizer_tgt, seq_len
         logs.add_scalar("Validation Character Error Rate", cer_score, global_step)
         logs.flush()
 
-def transformer_translates(src_text, model, tokenizer_src, tokenizer_tgt, seq_len, device):
+def inference(src_text, model, tokenizer_src, tokenizer_tgt, seq_len, device):
     """
     Translates a source text using a transformer model.
 
